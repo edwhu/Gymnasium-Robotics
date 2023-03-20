@@ -78,7 +78,7 @@ def register_robotics_envs():
 
         register(
             id=f"FetchQuadPushFO-v0",
-            entry_point="gymnasium_robotics.envs.fetch.push_quad:MujocoFetchPushQuadFOEnv",
+            entry_point="gymnasium_robotics.envs.fetch.push_quad_fo:MujocoFetchPushQuadFOEnv",
             kwargs=kwargs,
             max_episode_steps=50,
         )
