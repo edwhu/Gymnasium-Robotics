@@ -11,7 +11,7 @@ from gymnasium_robotics.envs.fetch import MujocoFetchEnv
 MODEL_XML_PATH = os.path.join("fetch", "push_quad.xml")
 
 
-class MujocoFetchPushQuadFOEnv(MujocoFetchEnv, EzPickle):
+class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
     def __init__(self, reward_type="sparse", **kwargs):
         initial_qpos = {
             "robot0:slide0": 0.405,
@@ -36,9 +36,7 @@ class MujocoFetchPushQuadFOEnv(MujocoFetchEnv, EzPickle):
             **kwargs,
         )
         # consists of images and proprioception.
-        _obs_space = {}
-        _obs_space["observation"] = spaces.Box(-np.inf, np.inf, shape=(6,), dtype=np.float32)  # object x,y,z & gripper x,y,z
-        self.observation_space = spaces.Dict(_obs_space)
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(6,), dtype=np.float32)  # object x,y,z & gripper x,y,z
         EzPickle.__init__(self, image_size=32, reward_type=reward_type, **kwargs)
 
     def _sample_goal(self):
@@ -68,12 +66,13 @@ class MujocoFetchPushQuadFOEnv(MujocoFetchEnv, EzPickle):
         return True
 
     def _get_obs(self): 
-        obs = {}
+        obs = None
         if hasattr(self, "mujoco_renderer"):
             obj_qpos = self._utils.get_site_xpos(self.model, self.data, "object0")
             gripper_qpos = self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
-            obs["observation"] = np.concatenate((obj_qpos, gripper_qpos))
+            obs = np.concatenate((obj_qpos, gripper_qpos))
         else:
+            obs = {}
             obs["achieved_goal"] = obs["observation"] = np.zeros((6,))
         return obs
 
