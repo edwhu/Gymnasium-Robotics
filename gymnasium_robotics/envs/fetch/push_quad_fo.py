@@ -36,7 +36,7 @@ class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
             **kwargs,
         )
         # consists of images and proprioception.
-        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(6,), dtype=np.float32)  # object x,y,z & gripper x,y,z
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(18,), dtype=np.float32)  # object x,y,z & gripper x,y,z
         EzPickle.__init__(self, image_size=32, reward_type=reward_type, **kwargs)
 
     def _sample_goal(self):
@@ -69,8 +69,12 @@ class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
         obs = None
         if hasattr(self, "mujoco_renderer"):
             obj_qpos = self._utils.get_site_xpos(self.model, self.data, "object0")
+            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip")
+            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip")
             gripper_qpos = self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
-            obs = np.concatenate((obj_qpos, gripper_qpos))
+            gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip")
+            gripper_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip")
+            obs = np.concatenate((obj_qpos, obj_qvelp, obj_qvelr, gripper_qpos, gripper_qvelp, gripper_qvelr))
         else:
             obs = {}
             obs["achieved_goal"] = obs["observation"] = np.zeros((6,))
