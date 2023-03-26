@@ -105,9 +105,20 @@ def register_robotics_envs():
         )
 
         register(
-            id=f"FetchQuadPushState-v0",
+            id=f"FetchPushQuadState-v0",
             entry_point="gymnasium_robotics.envs.fetch.push_quad_fo:MujocoFetchPushQuadStateEnv",
             kwargs=kwargs,
+            max_episode_steps=50,
+        )
+
+        register(
+            id=f"FetchPushQuadStateHard-v0",
+            entry_point="gymnasium_robotics.envs.fetch.push_quad_fo:MujocoFetchPushQuadStateHardEnv",
+            kwargs={
+                "reward_type": "dense",
+                "action_space_type": "robot",
+                "render_mode": "rgb_array"
+            },
             max_episode_steps=50,
         )
 
