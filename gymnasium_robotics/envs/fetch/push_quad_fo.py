@@ -69,13 +69,16 @@ class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
         obs = None
         if hasattr(self, "mujoco_renderer"):
             self._render_callback()
+            dt = self.n_substeps * self.model.opt.timestep
+            # Object positions and velocities
             obj_qpos = self._utils.get_site_xpos(self.model, self.data, "object0")
-            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip")
-            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip")
+            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
+            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
+            # Gripper positions and velocities
             gripper_qpos = self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
-            gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip")
-            gripper_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip")
-            obs = np.concatenate((obj_qpos, obj_qvelp, obj_qvelr, gripper_qpos, gripper_qvelp, gripper_qvelr))
+            gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
+            gripper_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
+            obs = np.concatenate((obj_qpos, obj_qvelp, obj_qvelr, gripper_qpos, gripper_qvelp, gripper_qvelr), dtype=np.float32)
         else:
             obs = {}
             obs["achieved_goal"] = obs["observation"] = np.zeros((18,))
@@ -207,25 +210,19 @@ class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
 
     def _get_obs(self):
         obs = None
-        # TODO(James)
-        # dt = self.n_substeps * self.model.opt.timestep
-        # grip_velp = (
-            # self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
-        # )
-        # obs["robot"] = np.concatenate([grip_pos, grip_velp], dtype=np.float32)
-
         if hasattr(self, "mujoco_renderer"):
             self._render_callback()
+            dt = self.n_substeps * self.model.opt.timestep
             # Object positions and velocities
             obj_qpos = self._utils.get_site_xpos(self.model, self.data, "object0")
-            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip")
-            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip")
+            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
+            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
             # Gripper positions and velocities
             gripper_qpos = self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
-            gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip")
-            gripper_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip")
+            gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
+            gripper_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
             goal = self.goal
-            obs = np.concatenate((obj_qpos, obj_qvelp, obj_qvelr, gripper_qpos, gripper_qvelp, gripper_qvelr, goal))
+            obs = np.concatenate((obj_qpos, obj_qvelp, obj_qvelr, gripper_qpos, gripper_qvelp, gripper_qvelr, goal), dtype=np.float32)
         else:
             # BaseRobotEnv has called _get_obs to determine observation space dims but mujoco renderer has not been initialized yet.
             # in this case, return an obs dict with arbitrary values for each ey
