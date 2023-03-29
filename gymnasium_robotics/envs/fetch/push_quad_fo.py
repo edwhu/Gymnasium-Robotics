@@ -72,8 +72,8 @@ class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
             dt = self.n_substeps * self.model.opt.timestep
             # Object positions and velocities
             obj_qpos = self._utils.get_site_xpos(self.model, self.data, "object0")
-            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
-            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
+            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "object0") * dt
+            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "object0") * dt
             # Gripper positions and velocities
             gripper_qpos = self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
             gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
@@ -146,7 +146,7 @@ class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
         pass
 
 class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
-    def __init__(self, reward_type="sparse", action_space_type="object", **kwargs):
+    def __init__(self, full_joint_state=False, reward_type="sparse", action_space_type="object", **kwargs):
         initial_qpos = {
             "robot0:slide0": 0.405,
             "robot0:slide1": 0.48,
@@ -154,6 +154,7 @@ class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
             "object0:joint": [1.25, 0.53, 0.4, 1.0, 0.0, 0.0, 0.0],
         }
         self.prev_goal_dist = None
+        self.full_joint_state = full_joint_state
         MujocoFetchEnv.__init__(
             self,
             model_path=MODEL_XML_PATH,
@@ -171,7 +172,13 @@ class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
             **kwargs,
         )
         self.action_space_type = action_space_type
-        self.observation_space = spaces.Box(low=float("-inf"), high=float("inf"), shape=(21,))  # object & gripper position, linear vel, and rotational vel & goal
+        if self.full_joint_state:
+            self.joints = self._utils.extract_mj_names(self.model, self._utils.mjtObj.mjOBJ_JOINT)[0]
+        else:
+            self.joints = []
+        self.sites = ("robot0:grip", "object0")  # only use gripper
+        obs_shape = self.get_joint_state().shape[0] + self.get_site_state().shape[0] + 3  # +3 for goal TODO(James)
+        self.observation_space = spaces.Box(low=float("-inf"), high=float("inf"), shape=(obs_shape,))  # position, velocity, and angular velocity for each site
         EzPickle.__init__(self, reward_type=reward_type, action_space_type=action_space_type, **kwargs)
         
         self.goal_idx = 0
@@ -207,28 +214,36 @@ class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
 
         self._mujoco.mj_forward(self.model, self.data)
         return True
+    
+    def get_joint_state(self):
+        if not self.joints:
+            return np.array([])
+        dt = self.n_substeps * self.model.opt.timestep
+        qpos = np.concatenate([self._utils.get_joint_qpos(self.model, self.data, name) for name in self.joints])
+        qvel = np.concatenate([(self._utils.get_joint_qvel(self.model, self.data, name) * dt) for name in self.joints])
+        return np.concatenate((qpos, qvel), dtype=np.float32)
+    
+    def get_site_state(self):
+        dt = self.n_substeps * self.model.opt.timestep
+        xpos = np.concatenate([self._utils.get_site_xpos(self.model, self.data, name) for name in self.sites])
+        xvelp = np.concatenate([(self._utils.get_site_xvelp(self.model, self.data, name) * dt) for name in self.sites])
+        xvelr = np.concatenate([(self._utils.get_site_xvelr(self.model, self.data, name) * dt) for name in self.sites])
+        return np.concatenate((xpos, xvelp, xvelr), dtype=np.float32)
 
     def _get_obs(self):
         obs = None
         if hasattr(self, "mujoco_renderer"):
             self._render_callback()
-            dt = self.n_substeps * self.model.opt.timestep
-            # Object positions and velocities
-            obj_qpos = self._utils.get_site_xpos(self.model, self.data, "object0")
-            obj_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
-            obj_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
-            # Gripper positions and velocities
-            gripper_qpos = self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
-            gripper_qvelp = self._utils.get_site_xvelp(self.model, self.data, "robot0:grip") * dt
-            gripper_qvelr = self._utils.get_site_xvelr(self.model, self.data, "robot0:grip") * dt
+            site_states = self.get_site_state()
+            joint_states = self.get_joint_state()
             goal = self.goal
-            obs = np.concatenate((obj_qpos, obj_qvelp, obj_qvelr, gripper_qpos, gripper_qvelp, gripper_qvelr, goal), dtype=np.float32)
+            obs = np.concatenate((site_states, joint_states, goal), dtype=np.float32)
         else:
             # BaseRobotEnv has called _get_obs to determine observation space dims but mujoco renderer has not been initialized yet.
             # in this case, return an obs dict with arbitrary values for each ey
             # since observation space will be overwritten later.
             obs = {}
-            obs["achieved_goal"] = obs["observation"] = np.zeros((21,))
+            obs["achieved_goal"] = obs["observation"] = np.zeros((1,))
         return obs
 
     def step(self, action):
