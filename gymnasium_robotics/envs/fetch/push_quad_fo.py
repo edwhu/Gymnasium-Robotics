@@ -6,6 +6,7 @@ from gymnasium import spaces
 from gymnasium.utils.ezpickle import EzPickle
 
 from gymnasium_robotics.envs.fetch import MujocoFetchEnv, goal_distance
+from gymnasium_robotics.utils import rotations
 
 # Ensure we get the path separator correct on windows
 MODEL_XML_PATH = os.path.join("fetch", "push_quad.xml")
@@ -146,7 +147,7 @@ class MujocoFetchPushQuadStateEnv(MujocoFetchEnv, EzPickle):
         pass
 
 class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
-    def __init__(self, full_joint_state=False, reward_type="sparse", action_space_type="object", **kwargs):
+    def __init__(self, full_joint_state=True, reward_type="sparse", action_space_type="object", **kwargs):
         initial_qpos = {
             "robot0:slide0": 0.405,
             "robot0:slide1": 0.48,
@@ -226,9 +227,10 @@ class MujocoFetchPushQuadStateHardEnv(MujocoFetchEnv, EzPickle):
     def get_site_state(self):
         dt = self.n_substeps * self.model.opt.timestep
         xpos = np.concatenate([self._utils.get_site_xpos(self.model, self.data, name) for name in self.sites])
+        xrot = np.concatenate([rotations.mat2euler(self._utils.get_site_xmat(self.model, self.data, name)) for name in self.sites])
         xvelp = np.concatenate([(self._utils.get_site_xvelp(self.model, self.data, name) * dt) for name in self.sites])
         xvelr = np.concatenate([(self._utils.get_site_xvelr(self.model, self.data, name) * dt) for name in self.sites])
-        return np.concatenate((xpos, xvelp, xvelr), dtype=np.float32)
+        return np.concatenate((xpos, xrot, xvelp, xvelr), dtype=np.float32)
 
     def _get_obs(self):
         obs = None
