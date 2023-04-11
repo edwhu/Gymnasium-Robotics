@@ -150,6 +150,17 @@ def register_robotics_envs():
             max_episode_steps=50,
         )
 
+        register(
+            id=f"ObjectPushQuadStateSparseHard-v0",
+            entry_point="gymnasium_robotics.envs.fetch.push_quad_fo:MujocoFetchPushQuadStateHardEnv",
+            kwargs={
+                "reward_type": "sparse",
+                "action_space_type": "object",
+                "render_mode": "rgb_array"
+            },
+            max_episode_steps=50,
+        )
+
         # Hand
         register(
             id=f"HandReach{suffix}-v0",
