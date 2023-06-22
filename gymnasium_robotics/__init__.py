@@ -1445,6 +1445,24 @@ def register_robotics_envs():
                 "width": 64,
                 "height": 64,
                 "render_mode": "depth_array" if "depth" in observation_mode.lower() else "rgb_array",
+                "is_hard": False,
+                "obj_grip_rew_weight": 0.1,
+                "obj_goal_rew_weight": 1
+            },
+        )
+
+    for observation_mode in ["FO", "PO", "DepthFO", "DepthPO"]:
+        register(
+            id=f"{observation_mode}OccludedPickPlaceRecessed2GoalHard-v0",  # goals further apart
+            entry_point="gymnasium_robotics.envs.fetch.occluded_pick_place_recessed_2goal:FetchOccludedPickPlaceRecessed2GoalEnv",
+            max_episode_steps=100,
+            disable_env_checker=True,
+            kwargs={
+                "camera_names": ["external_camera_0", "behind_camera"] if "FO" in observation_mode else ["external_camera_0"],
+                "width": 64,
+                "height": 64,
+                "render_mode": "depth_array" if "depth" in observation_mode.lower() else "rgb_array",
+                "is_hard": True,
                 "obj_grip_rew_weight": 0.1,
                 "obj_goal_rew_weight": 1
             },
