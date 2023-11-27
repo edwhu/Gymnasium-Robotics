@@ -15,17 +15,11 @@
 <mujoco model="franka_kitchen">
 
     <size njmax='1000' nconmax='1000'/>
-    <!-- <include file="shared.xml"/> -->
 
     <include file="../kitchen_assets/basic_scene.xml"/>
     <include file="../franka_robot_assets/franka_assets.xml"/>
-    <!-- <include file="item_assets/oven_asset.xml"/> -->
     <include file="item_assets/counters_asset.xml"/>
     <include file="item_assets/backwall_asset.xml"/>
-    <!-- <include file="item_assets/slidecabinet_asset.xml"/> -->
-    <!-- <include file="item_assets/hingecabinet_asset.xml"/> -->
-    <!-- <include file="item_assets/microwave_asset.xml"/> -->
-    <!-- <include file="item_assets/kettle_asset.xml"/> -->
 
     <visual>
     <global offwidth="2560" offheight="1920" />
@@ -35,41 +29,37 @@
 
     <compiler inertiafromgeom='auto' inertiagrouprange='3 5' angle="radian" texturedir="textures" meshdir="../franka_robot_assets/meshes"/>
     <worldbody>
-        <camera name='left_cap' pos='-1.2 -0.5 1.8' quat='0.78 0.49 -0.22 -0.32' />
-        <camera name='right_cap' pos='1.2 -0.5 1.8' quat='0.76 0.5 0.21 0.35'/>
+        <!-- <camera name='left_cap' pos='-1.2 -0.5 1.8' quat='0.78 0.49 -0.22 -0.32' /> -->
+        <!-- <camera name='right_cap' pos='1.2 -0.5 1.8' quat='0.76 0.5 0.21 0.35'/> -->
 
         <!-- Robot -->
-        <body pos='0. 0 1.8' euler='0 0 1.57'>
+        <body pos='0 0 1.6' euler='0 0 1.57'>
             <geom type='cylinder' size='.120 .90' pos='-.04 0 -0.90'/>
             <include file="../franka_robot_assets/chain.xml"/>
         </body>
         
-        <body name='desk' pos='-0.1 0.75 0'>
-
-            <body name="counters1" pos="0 0 0" >
+        <!-- Walls & Counter -->
+        <body name='desk' pos='0 0 1.45'>
+            <body name="counters1" pos="0 0.7 0" >
                 <include file="item_assets/counters_chain.xml"/>
             </body>
-            <!-- <body name="oven" pos="0 0 0" >
-                <include file="item_assets/oven_chain.xml"/>
-            </body> -->
-            <body name="backwall" pos="0 0 0" >
+            <body name="backwall" pos="0 1.7 0" >
                 <include file="item_assets/backwall_chain.xml"/>
             </body>
-            <!-- <body name="slidecabinet" pos="0.4 0.3 2.6" >
-                <include file="item_assets/slidecabinet_chain.xml"/>
-            </body> -->
-            <!-- <body name="hingecabinet" pos="-0.504 0.28 2.6" >
-                <include file="item_assets/hingecabinet_chain.xml"/>
-            </body> -->
-            <!-- <body name="microwave" pos="-0.750 -0.025 1.6" euler="0 0 0.3">
-                <include file="item_assets/microwave_chain.xml"/>
-            </body> -->
         </body>
-        <!-- <body name="kettle" pos="-0.269 0.35 1.626">
-            <freejoint name="kettle"/>
-            <include file="item_assets/kettle_chain.xml"/>
-        </body> -->
 
+        <!-- Sites -->
+        <!-- TODO(js): Add sites w/ cameras pointing to site -->
+        <!-- <body name="arenacenter" pos="1.3 0.75 0.42">
+            <site name="arenacenter"  size="0.02 0.02 0.02" rgba="0.2 0 0 0" type="sphere"></site>
+		</body> -->
+
+
+        <!-- Cameras -->
+        <!-- <body name="camera_front" pos="1.7 0.75 0.5">
+			<camera mode="targetbody" target="arenacenter"  fovy="50" name="camera_front" ></camera>
+			<site name="camera_front_site" pos="0 0 0" size="0.05 0.05 0.05" rgba="1 1 1 1" type="sphere"></site>
+		</body> -->
     </worldbody>
     <include file="../franka_robot_assets/actuator.xml"/>
 
