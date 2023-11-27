@@ -2,12 +2,6 @@
     <compiler inertiafromgeom="auto" inertiagrouprange="4 4" angle="radian"/>
 
     <asset>
-        <!-- <mesh file="../../kitchen_assets/meshes/cabinetdrawer.stl" name="cabinetdrawer"/> -->
-        <!-- <mesh file="../../kitchen_assets/meshes/cabinethandle.stl" name="cabinethandle"/> -->
-        <!-- <mesh file="../../kitchen_assets/meshes/cabinetbase.stl" name="cabinetbase"/> -->
-        <!-- <mesh file="../../kitchen_assets/meshes/countertop.stl" name="countertop"/> -->
-        <!-- <mesh file="../../kitchen_assets/meshes/faucet.stl" name="faucet"/> -->
-
         <texture name="T_counter_metal" type="cube" height="1" width="1" file="metal1.png" />
         <texture name="T_counter_marble" type="cube" height="1" width="1" file="marble1.png" />
 
@@ -16,7 +10,6 @@
         <material name="counter_black" rgba=".2 .2 .2 1" reflectance="1" shininess="1"  />
         <material name="counter_blue" rgba=".46 .5 .6 1" reflectance="1" shininess="1"  />
         <material name="counter_collision_blue" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
-
     </asset>
 
     <default>
