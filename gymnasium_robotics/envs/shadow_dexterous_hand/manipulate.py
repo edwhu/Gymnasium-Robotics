@@ -215,7 +215,7 @@ class MujocoManipulateEnv(get_base_manipulate_env(MujocoHandEnv)):
 
         # Run the simulation for a bunch of timesteps to let everything settle in.
         for _ in range(10):
-            self._set_action(np.zeros(20))
+            self._set_action(np.zeros(self.action_space.shape[0]))
             try:
                 self._mujoco.mj_step(self.model, self.data, nstep=self.n_substeps)
             except Exception:

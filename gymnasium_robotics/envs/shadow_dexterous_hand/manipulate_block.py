@@ -10,6 +10,7 @@ from gymnasium_robotics.envs.shadow_dexterous_hand import (
 
 # Ensure we get the path separator correct on windows
 MANIPULATE_BLOCK_XML = os.path.join("hand", "manipulate_block.xml")
+MANIPULATE_BLOCK_UPSIDEDOWN_XML = os.path.join("hand", "manipulate_block_upsidedown.xml")
 
 
 class MujocoHandBlockEnv(MujocoManipulateEnv, EzPickle):
@@ -224,6 +225,25 @@ class MujocoHandBlockEnv(MujocoManipulateEnv, EzPickle):
         )
         EzPickle.__init__(self, target_position, target_rotation, reward_type, **kwargs)
 
+class MujocoHandBlockUpsideDownEnv(MujocoManipulateEnv, EzPickle):
+    def __init__(
+        self,
+        target_position="random",
+        target_rotation="xyz",
+        reward_type="sparse",
+        **kwargs,
+    ):
+        MujocoManipulateEnv.__init__(
+            self,
+            model_path=MANIPULATE_BLOCK_UPSIDEDOWN_XML,
+            target_position=target_position,
+            target_rotation=target_rotation,
+            target_position_range=np.array([(-0.1, 0.1), (-0.1, 0.1), (-0.005, 0.005)]),
+            reward_type=reward_type,
+            n_actions=23,
+            **kwargs,
+        )
+        EzPickle.__init__(self, target_position, target_rotation, reward_type, **kwargs)
 
 class MujocoPyHandBlockEnv(MujocoPyManipulateEnv, EzPickle):
     def __init__(
@@ -243,3 +263,25 @@ class MujocoPyHandBlockEnv(MujocoPyManipulateEnv, EzPickle):
             **kwargs,
         )
         EzPickle.__init__(self, target_position, target_rotation, reward_type, **kwargs)
+
+if __name__ == "__main__":
+    env = MujocoHandBlockUpsideDownEnv(target_rotation="xyz", target_position="ignore", render_mode="human")
+    print(env.action_space)
+    while True:
+        env.reset()
+        for i in range(10):
+            action = np.zeros(env.action_space.shape[0])
+            action[0] = -1.0
+            env.step(action)
+        for i in range(10):
+            action = np.zeros(env.action_space.shape[0])
+            action[0] = 1.0
+            env.step(action)
+        for i in range(10):
+            action = np.zeros(env.action_space.shape[0])
+            action[2] = -1.0
+            env.step(action)
+        for i in range(10):
+            action = np.zeros(env.action_space.shape[0])
+            action[2] = 1.0
+            env.step(action)

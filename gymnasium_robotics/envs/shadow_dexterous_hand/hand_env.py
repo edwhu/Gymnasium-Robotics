@@ -22,13 +22,14 @@ def get_base_hand_env(
 
         def __init__(self, relative_control, **kwargs):
             self.relative_control = relative_control
-            super().__init__(n_actions=20, **kwargs)
+            self.n_actions = kwargs.pop("n_actions", 20)
+            super().__init__(n_actions=self.n_actions, **kwargs)
 
         # RobotEnv methods
         # ----------------------------
 
         def _set_action(self, action):
-            assert action.shape == (20,)
+            assert action.shape == (self.n_actions,)
 
     return BaseHandEnv
 

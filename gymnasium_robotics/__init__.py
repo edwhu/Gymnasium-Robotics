@@ -93,6 +93,19 @@ def register_robotics_envs():
         )
 
         register(
+            id=f"HandManipulateBlockRotateZUpsideDown{suffix}-v1",
+            entry_point="gymnasium_robotics.envs.shadow_dexterous_hand.manipulate_block:MujocoHandBlockEnv",
+            kwargs=_merge(
+                {
+                    "target_position": "ignore",
+                    "target_rotation": "xyz",
+                },
+                kwargs,
+            ),
+            max_episode_steps=100,
+        )
+
+        register(
             id=f"HandManipulateBlockRotateZ{suffix}-v0",
             entry_point="gymnasium_robotics.envs.shadow_dexterous_hand.manipulate_block:MujocoPyHandBlockEnv",
             kwargs=_merge(
