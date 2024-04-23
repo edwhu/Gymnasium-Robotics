@@ -1600,7 +1600,9 @@ def register_robotics_envs():
         disable_env_checker=True,
         kwargs={
             "include_obj_state": True,
-            "easy_reset_percentage": 1.0
+            "easy_reset_percentage": 1.0,
+            # "camera_names": ["camera_front"],
+            # "render_mode": "rgb_array",
         },
     )
 

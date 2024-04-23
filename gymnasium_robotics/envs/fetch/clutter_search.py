@@ -15,16 +15,16 @@ MODEL_XML_PATH = os.path.join("fetch", "clutter_search.xml")
 class FetchClutterSearchEnv(MujocoFetchEnv, EzPickle):
     metadata = {"render_modes": ["rgb_array", "depth_array"], 'render_fps': 25}
     render_mode = "rgb_array"
-    def __init__(self, camera_names=None, reward_type="dense", obj_range=0.07, include_obj_state=False, easy_reset_percentage=0, **kwargs):
+    def __init__(self, camera_names=None, reward_type="dense", obj_range=0.07, include_obj_state=False, easy_reset_percentage=0.0, **kwargs):
         initial_qpos = {
             "robot0:slide0": 0.405,
             "robot0:slide1": 0.48,
             "robot0:slide2": 0.0,
             'object0:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.], # object to find
-            'object1:joint': [1.33, 0.75, 0.45,  1., 0., 0., 0.], # distractor, always on top of object0
-            'object2:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.],
-            'object3:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.],
-            'object4:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.],
+            # 'object1:joint': [1.33, 0.75, 0.45,  1., 0., 0., 0.], # distractor, always on top of object0
+            # 'object2:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.],
+            # 'object3:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.],
+            # 'object4:joint': [1.33, 0.75, 0.42, 1., 0., 0., 0.],
         }
         self.camera_names = camera_names if camera_names is not None else []
         workspace_min=np.array([1.1, 0.44, 0.42])
@@ -87,54 +87,64 @@ class FetchClutterSearchEnv(MujocoFetchEnv, EzPickle):
         # Randomize start position of object.
         if self.has_object:
             # all_corners = [[1.2, 0.85], [1.2, 0.65], [1.4, 0.85], [1.4, 0.65]]
-            dx = 0.03
-            dy = 0.03
+            dx = 0.05
+            dy = 0.05
             origin = [1.35, 0.75]
             all_corners = []
             for x_sign in [-1, 1]:
                 for y_sign in [-1, 1]:
                     all_corners.append([origin[0] + x_sign * dx, origin[1] + y_sign * dy])
+            corner_xy = all_corners[self.np_random.choice(len(all_corners))]
+            object_qpos = self._utils.get_joint_qpos(
+                self.model, self.data, f"object0:joint"
+            )
+            # add some noise to obj0 xy.
+            object_qpos[:2] = corner_xy 
+            object_qpos[2] = 0.425
+            object_qpos[3:] = [1, 0, 0, 0]
+            self._utils.set_joint_qpos(
+                self.model, self.data, f"object0:joint", object_qpos
+            )
+            # self.np_random.shuffle(all_corners)
+            # for i, corner_xy in enumerate(all_corners):
+            #     if i == 0: # set the target object
+            #         if self.np_random.uniform() > self.easy_reset_percentage:
+            #             # put object0 underneath object1
+            #             obj0_z = 0.415
+            #             obj1_z = 0.44
+            #         else:
+            #             obj0_z = 0.435
+            #             obj1_z = 0.41
 
-            self.np_random.shuffle(all_corners)
-            for i, corner_xy in enumerate(all_corners):
-                if i == 0: # set the target object
-                    if self.np_random.uniform() > self.easy_reset_percentage:
-                        # put object0 underneath object1
-                        obj0_z = 0.415
-                        obj1_z = 0.44
-                    else:
-                        obj0_z = 0.435
-                        obj1_z = 0.41
+            #         object_qpos = self._utils.get_joint_qpos(
+            #             self.model, self.data, f"object0:joint"
+            #         )
+            #         # add some noise to obj0 xy.
+            #         object_qpos[:2] = corner_xy 
+            #         object_qpos[2] = obj0_z
+            #         object_qpos[3:] = [1, 0, 0, 0]
+            #         self._utils.set_joint_qpos(
+            #             self.model, self.data, f"object0:joint", object_qpos
+            #         )
+            #         object_qpos = self._utils.get_joint_qpos(
+            #             self.model, self.data, f"object1:joint"
+            #         )
+            #         object_qpos[:2] = corner_xy
+            #         object_qpos[2] = obj1_z
+            #         object_qpos[3:] = [1, 0, 0, 0]
+            #         self._utils.set_joint_qpos(
+            #             self.model, self.data, f"object1:joint", object_qpos
+            #         )
+            #         continue
 
-                    object_qpos = self._utils.get_joint_qpos(
-                        self.model, self.data, f"object0:joint"
-                    )
-                    # add some noise to obj0 xy.
-                    object_qpos[:2] = corner_xy 
-                    object_qpos[2] = obj0_z
-                    object_qpos[3:] = [1, 0, 0, 0]
-                    self._utils.set_joint_qpos(
-                        self.model, self.data, f"object0:joint", object_qpos
-                    )
-                    object_qpos = self._utils.get_joint_qpos(
-                        self.model, self.data, f"object1:joint"
-                    )
-                    object_qpos[:2] = corner_xy
-                    object_qpos[2] = obj1_z
-                    object_qpos[3:] = [1, 0, 0, 0]
-                    self._utils.set_joint_qpos(
-                        self.model, self.data, f"object1:joint", object_qpos
-                    )
-                    continue
-
-                object_qpos = self._utils.get_joint_qpos(
-                    self.model, self.data, f"object{i+1}:joint"
-                )
-                object_qpos[:2] = corner_xy
-                object_qpos[2] = 0.425
-                self._utils.set_joint_qpos(
-                    self.model, self.data, f"object{i+1}:joint", object_qpos
-                )
+            #     object_qpos = self._utils.get_joint_qpos(
+            #         self.model, self.data, f"object{i+1}:joint"
+            #     )
+            #     object_qpos[:2] = corner_xy
+            #     object_qpos[2] = 0.425
+            #     self._utils.set_joint_qpos(
+            #         self.model, self.data, f"object{i+1}:joint", object_qpos
+            #     )
                 
 
             # object_xpos = [1.3, 0.75]
