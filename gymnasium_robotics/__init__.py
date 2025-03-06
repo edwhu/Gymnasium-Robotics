@@ -9,6 +9,8 @@ from gymnasium_robotics.envs.multiagent_mujoco import mamujoco_v0
 def register_robotics_envs():
     """Register all environment ID's to Gymnasium."""
 
+    print("Registering Gymnasium-Robotics envs")
+
     def _merge(a, b):
         a.update(b)
         return a
@@ -1579,6 +1581,60 @@ def register_robotics_envs():
             },
         )
 
+    # ------ Clutter Search ------
+    register(
+        id=f"ClutterSearch5cm2x2-v0",
+        entry_point="gymnasium_robotics.envs.fetch.clutter_search:FetchClutterSearchEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_under", "camera_front", "gripper_camera_rgb"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.05
+        },
+    )
+
+    register(
+        id=f"ClutterSearch2x2-v0",
+        entry_point="gymnasium_robotics.envs.fetch.clutter_search:FetchClutterSearchEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_under", "camera_front", "gripper_camera_rgb"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+        },
+    )
+    register(
+        id=f"ClutterSearch2x2Sparse-v0",
+        entry_point="gymnasium_robotics.envs.fetch.clutter_search:FetchClutterSearchEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_under", "camera_front"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "reward_type": "sparse",
+        },
+    )
+    register(
+        id=f"ClutterSearch2x2StateEasyReset-v0",
+        entry_point="gymnasium_robotics.envs.fetch.clutter_search:FetchClutterSearchEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "include_obj_state": True,
+            "easy_reset_percentage": 1.0
+        },
+    )
+
     # ------ Gripper Camera -> 2D Blind Pick ------
     for observation_mode in ["FO", "PO", "DepthFO", "DepthPO"]:
         for difficulty in [0.07, 0.15]:
@@ -1629,6 +1685,24 @@ def register_robotics_envs():
                     "obj_range": difficulty,
                 },
             )
+    
+    # ----- Privileged Reset, 2D Blind Pick -----
+    for max_episode_limit in [0, 50, 100, 250, 500, 800, 1000, 1000000]:
+        register(
+            id=f"BlindPickPrivilegedReset{max_episode_limit}-v0",
+            entry_point="gymnasium_robotics.envs.fetch.blind_pick:FetchBlindPickEnv",
+            max_episode_steps=100,
+            disable_env_checker=True,
+            kwargs={
+                "camera_names": ["camera_front", "camera_side", "gripper_camera_rgb"],
+                "width": 32,
+                "height": 32,
+                "render_mode": "rgb_array",
+                "obj_range": 0.07,
+                "max_episode_limit": max_episode_limit,
+                "include_obj_state": True,
+            },
+        )
 
     # ------ 32x32 Fixed/Gripper Camera -> 2D Blind Pick ------
     for observation_mode in ["FO", "PO"]:
@@ -1676,6 +1750,98 @@ def register_robotics_envs():
                 "obj_range": difficulty,
             },
         )
+
+    # ----- State-Only Blind Pick ---- #
+    register(
+        id=f"State2DBlind0.1cmPick-v0",
+        entry_point="gymnasium_robotics.envs.fetch.blind_pick:FetchBlindPickEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["external_camera_0"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.001,
+        },
+    )
+    register(
+        id=f"State2DBlind0.1cmPickSparse-v0",
+        entry_point="gymnasium_robotics.envs.fetch.blind_pick:FetchBlindPickEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["external_camera_0"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.001,
+            "reward_type": "sparse",
+        },
+    )
+
+    # ----- Single Block Clutter Search ---- #
+    register(
+        id=f"SingleClutterSearch0.1cm-v0",
+        entry_point="gymnasium_robotics.envs.fetch.single_clutter_search:SingleClutterSearch",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_front"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.001,
+        },
+    )
+    register(
+        id=f"SingleClutterSearch0.1cmSparse-v0",
+        entry_point="gymnasium_robotics.envs.fetch.single_clutter_search:SingleClutterSearch",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_front"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.001,
+            "reward_type": "sparse",
+        },
+    )
+
+    register(
+        id=f"SingleClutterSearch5cm-v0",
+        entry_point="gymnasium_robotics.envs.fetch.single_clutter_search:SingleClutterSearch",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_front"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.05,
+        },
+    )
+    register(
+        id=f"SingleClutterSearch5cmSparse-v0",
+        entry_point="gymnasium_robotics.envs.fetch.single_clutter_search:SingleClutterSearch",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_front"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "include_obj_state": True,
+            "obj_range": 0.05,
+            "reward_type": "sparse",
+        },
+    )
 
     # ------ Pick and Place, State sanity check ------
     register(
@@ -1776,6 +1942,24 @@ def register_robotics_envs():
             "obj_range": 0.07,
         },
     )
+
+
+    # Pick and Place, Moving Camera / ACTIVE PERCEPTION
+    register(
+        id=f"HandToFixed7cmPick5cmPlaceCam-v0",
+        entry_point="gymnasium_robotics.envs.fetch.blind_pick_place_cam:FetchBlindPickPlaceCamEnv",
+        max_episode_steps=100,
+        disable_env_checker=True,
+        kwargs={
+            "camera_names": ["camera_front"],
+            "width": 64,
+            "height": 64,
+            "render_mode": "rgb_array",
+            "obj_range": 0.07,
+        },
+    )
+
+    # OTHER PICK PLACE ENVS
 
     for observation_mode in ["FO", "PO", "DepthFO", "DepthPO"]:
         register(
